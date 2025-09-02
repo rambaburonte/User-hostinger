@@ -1,3 +1,4 @@
+
 package com.basic.controller;
 
 import java.util.List;
@@ -91,5 +92,13 @@ public class usercontroller {
         log.warn("User not found for deletion with id: {}", id);
             return ResponseEntity.notFound().build();
         }
+    }
+        // Create multiple users
+    @PostMapping("/users/batch")
+    public ResponseEntity<List<user>> createUsers(@RequestBody List<user> users) {
+        log.info("Creating multiple users: {}", users.size());
+        List<user> savedUsers = userRepo.saveAll(users);
+        log.debug("Created {} users", savedUsers.size());
+        return ResponseEntity.ok(savedUsers);
     }
 }
