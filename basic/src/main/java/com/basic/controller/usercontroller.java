@@ -16,48 +16,65 @@ import org.springframework.web.bind.annotation.RestController;
 import com.basic.entity.user;
 import com.basic.repository.userRepo;
 
+import lombok.extern.slf4j.Slf4j;
+
 
 @RestController
-
+@Slf4j
 public class usercontroller {
 
+   
     @Autowired
     private userRepo userRepo;
 
     // Get all users
     @GetMapping("/users")
     public ResponseEntity<List<user>> getUsers() {
+    log.info("Fetching all users");
         List<user> users = userRepo.findAll();
+    log.debug("Found {} users", users.size());
         return ResponseEntity.ok(users);
     }
 
     // Get user by id
     @GetMapping("/users/{id}")
     public ResponseEntity<user> getUserById(@PathVariable Long id) {
+    log.info("Fetching user with id: {}", id);
         Optional<user> userOpt = userRepo.findById(id);
-        return userOpt.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        if (userOpt.isPresent()) {
+        log.debug("User found: {}", userOpt.get());
+            return ResponseEntity.ok(userOpt.get());
+        } else {
+        log.warn("User not found with id: {}", id);
+            return ResponseEntity.notFound().build();
+        }
     }
 
     // Create new user
     @PostMapping("/users")
     public ResponseEntity<user> createUser(@RequestBody user userObj) {
+    log.info("Creating new user: {}", userObj);
         user savedUser = userRepo.save(userObj);
+    log.debug("User created with id: {}", savedUser.getId());
         return ResponseEntity.ok(savedUser);
     }
 
     // Update user
     @PutMapping("/users/{id}")
     public ResponseEntity<user> updateUser(@PathVariable Long id, @RequestBody user userObj) {
+    log.info("Updating user with id: {}", id);
         Optional<user> userOpt = userRepo.findById(id);
         if (userOpt.isPresent()) {
             user existingUser = userOpt.get();
+        log.debug("Current user data: {}", existingUser);
             existingUser.setName(userObj.getName());
             existingUser.setAge(userObj.getAge());
             existingUser.setEmail(userObj.getEmail());
             user updatedUser = userRepo.save(existingUser);
+        log.debug("Updated user data: {}", updatedUser);
             return ResponseEntity.ok(updatedUser);
         } else {
+        log.warn("User not found for update with id: {}", id);
             return ResponseEntity.notFound().build();
         }
     }
@@ -65,10 +82,13 @@ public class usercontroller {
     // Delete user
     @DeleteMapping("/users/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    log.info("Deleting user with id: {}", id);
         if (userRepo.existsById(id)) {
             userRepo.deleteById(id);
+        log.debug("User deleted with id: {}", id);
             return ResponseEntity.noContent().build();
         } else {
+        log.warn("User not found for deletion with id: {}", id);
             return ResponseEntity.notFound().build();
         }
     }
